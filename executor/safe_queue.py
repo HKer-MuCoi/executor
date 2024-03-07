@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import os
 import threading
 import queue
 from dataclasses import dataclass
@@ -43,6 +44,10 @@ class Executor:
         self.max_queue_size = max_queue_size
         self.queue = queue.Queue(maxsize=max_queue_size)
         self.thread_start(number_threads)
+        cpu_count = os.cpu_count()
+        if cpu_count < number_threads:
+            logger.warning(f"Number of CPUs in the system: {cpu_count}, number of threads: {number_threads},"
+                           f" your app may not be able to archive best performance")
 
     def send(self, job: Job) -> None:
         """
@@ -63,7 +68,7 @@ class Executor:
             number_threads = self.number_threads
         for i in range(number_threads):
             threading.Thread(target=self.worker, daemon=True).start()
-        logger.info(f"initialize {number_threads} threads successfully")
+        logger.info(f"Initialize {number_threads} threads successfully")
 
     def worker(self) -> None:
         while True:
